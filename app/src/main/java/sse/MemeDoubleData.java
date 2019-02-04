@@ -1,6 +1,7 @@
 package sse;
 
 import com.jins_jp.meme.MemeRealtimeData;
+import java.nio.ByteBuffer;
 
 /**
  * Created by sei on 2018/03/08.
@@ -113,5 +114,30 @@ public class MemeDoubleData {
 
     public double getAverageAccZ() {
         return accZ / dataNum;
+    }
+
+    public byte[] getServerSendData()
+    {
+        int arraySize = 13 * Double.SIZE / Byte.SIZE;
+        ByteBuffer buffer = ByteBuffer.allocate(arraySize);
+
+        buffer.putDouble(getAverageEyeMoveUp());
+        buffer.putDouble(getAverageEyeMoveDown());
+        buffer.putDouble(getAverageEyeMoveLeft());
+        buffer.putDouble(getAverageEyeMoveRight());
+
+        buffer.putDouble(getAverageBlinkSpeed());
+        buffer.putDouble(getAverageBlinkStrength());
+        buffer.putDouble(getAverageWalking());
+
+        buffer.putDouble(getAverageRoll());
+        buffer.putDouble(getAveragePitch());
+        buffer.putDouble(getAverageYaw());
+
+        buffer.putDouble(getAverageAccX());
+        buffer.putDouble(getAverageAccY());
+        buffer.putDouble(getAverageAccZ());
+
+        return buffer.array();
     }
 }

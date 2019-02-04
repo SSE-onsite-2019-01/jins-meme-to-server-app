@@ -7,6 +7,11 @@ import com.jins_jp.meme.MemeRealtimeData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
 
 
 /**
@@ -31,7 +36,24 @@ public class JinsMemePublisher extends AsyncTask<MemeDoubleData, Void, Boolean> 
 
 
     public void publish(MemeDoubleData data) {
-      // サーバにデータを送信
+        OutputStream outputStream = null;
+        try {
+            //InetAddress address = InetAddress.getByName(this.broker);
+            Socket socket = new Socket(this.broker, 80);
+            outputStream = socket.getOutputStream();
+            outputStream.write(data.getServerSendData());
+            Thread.sleep(100);
+        } catch (Exception e) {
+            logger.error("Cannot connect to " + this.broker, e);
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    logger.error("Cannot close "+ this.broker, e);
+                }
+            }
+        }
     }
 
 
