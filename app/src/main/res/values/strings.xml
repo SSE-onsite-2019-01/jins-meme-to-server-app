@@ -13,6 +13,6 @@
     <!-- Android経由でデータをアップロードするサーバのIPを指定-->
     <!--<string name="broker">tcp://ec2-13-125-237-148.ap-northeast-2.compute.amazonaws.com:80</string> -->
     <!--<string name="broker">http://13.125.237.148/</string>-->
-    <string name="broker">tcp://192.168.100.6:1883</string>
+    <string name="broker">tcp://ec2-13-125-237-148.ap-northeast-2.compute.amazonaws.com:1883</string>
     <string name="clientId">Sample</string>
 </resources>
