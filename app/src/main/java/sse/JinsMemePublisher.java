@@ -83,7 +83,7 @@ public class JinsMemePublisher extends AsyncTask<MemeDoubleData, Void, Boolean> 
             this.publishMessage(myClient, options, "BlinkStrength", data.getAverageBlinkStrength());
             this.publishMessage(myClient, options, "Walking", data.getAverageWalking());
             this.publishMessage(myClient, options, "Roll", data.getAverageRoll());
-            this.publishMessage(myClient, options, "Pith", data.getAveragePitch());
+            this.publishMessage(myClient, options, "Pitch", data.getAveragePitch());
             this.publishMessage(myClient, options, "Yaw", data.getAverageYaw());
             this.publishMessage(myClient, options, "AccX", data.getAverageAccX());
             this.publishMessage(myClient, options, "AccY", data.getAverageAccY());
