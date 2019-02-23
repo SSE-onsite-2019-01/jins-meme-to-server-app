@@ -4,9 +4,11 @@ import android.content.Intent;
 import android.graphics.Matrix;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -15,6 +17,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import com.google.android.gms.cast.MediaInfo;
+import com.google.android.gms.cast.MediaMetadata;
+import com.google.android.gms.cast.framework.CastButtonFactory;
+import com.google.android.gms.cast.framework.CastContext;
+import com.google.android.gms.cast.framework.CastSession;
+import com.google.android.gms.cast.framework.SessionManager;
+import com.google.android.gms.cast.framework.SessionManagerListener;
+import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 import com.jins_jp.meme.MemeConnectListener;
 import com.jins_jp.meme.MemeLib;
 import com.jins_jp.meme.MemeRealtimeData;
@@ -80,13 +90,80 @@ public class LiveViewActivity extends AppCompatActivity {
         }
     };
     private MemeLib memeLib;
+    private MqttClient subscriberClient;
+    private JinsMemeSubscriber subscriber;
+
+    private CastContext m_castContext;
+    private SessionManager m_sessionManager;
+    private final SessionManagerListener mSessionManagerListener = new SessionManagerListenerImpl();
+
+    private final Handler castHiHandler = new Handler();
+    private final Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                SessionManager manager = m_castContext.getSessionManager();
+                CastSession session = manager.getCurrentCastSession();
+                double score = subscriber.getLastScore();
+
+                MediaMetadata soundMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MUSIC_TRACK);
+                soundMetadata.putString(MediaMetadata.KEY_TITLE, "jins-meme");
+                soundMetadata.putString(MediaMetadata.KEY_SUBTITLE, "your stress is " + score);
+
+                MediaInfo mediaInfo;
+
+                if (score > 3.0) {
+                    mediaInfo = new MediaInfo.Builder("https://soundoftext.nyc3.digitaloceanspaces.com/a4d27100-3425-11e9-8130-0582ccfcede9.mp3")
+                            .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                            .setContentType("musics/mp3")
+                            .setMetadata(soundMetadata)
+                            .build();
+                } else {
+                    mediaInfo = new MediaInfo.Builder("https://soundoftext.nyc3.digitaloceanspaces.com/d61a1a60-3425-11e9-8130-0582ccfcede9.mp3")
+                            .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                            .setContentType("musics/mp3")
+                            .setMetadata(soundMetadata)
+                            .build();
+                }
+
+                final RemoteMediaClient remoteMediaClient = session.getRemoteMediaClient();
+                remoteMediaClient.load(mediaInfo, true, 0);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+
+            castHiHandler.postDelayed(this, 1000 * 30);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live_view);
 
+        try {
+            m_castContext = CastContext.getSharedInstance(this);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
         init();
+        initMqttSubscriber();
+        castHiHandler.post(runnable);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        CastButtonFactory.setUpMediaRouteButton(getApplicationContext(), menu, R.id.media_route_menu_item);
+
+        return true;
     }
 
     @Override
@@ -104,8 +181,17 @@ public class LiveViewActivity extends AppCompatActivity {
         }
     }
 
-    private MqttClient subscriberClient;
-    private JinsMemeSubscriber subscriber;
+    @Override
+    protected void onResume() {
+        m_castContext.getSessionManager().addSessionManagerListener(mSessionManagerListener, CastSession.class);
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        m_castContext.getSessionManager().removeSessionManagerListener(mSessionManagerListener, CastSession.class);
+    }
 
     private void init() {
         //Authentication and authorization of App and SDK
@@ -146,8 +232,12 @@ public class LiveViewActivity extends AppCompatActivity {
         });
 
         changeViewStatus(memeLib.isConnected());
+    }
 
-        this.subscriber = new JinsMemeSubscriber();
+    private void initMqttSubscriber()
+    {
+        m_sessionManager = m_castContext.getSessionManager();
+        this.subscriber = new JinsMemeSubscriber(m_sessionManager);
 
         try {
             subscriberClient = new MqttClient(getString(R.string.broker), getString(R.string.clientId)+"-sub", new MemoryPersistence());
@@ -242,4 +332,41 @@ public class LiveViewActivity extends AppCompatActivity {
         bodyImage.setImageMatrix(matrix);
     }
 
+    private class SessionManagerListenerImpl implements SessionManagerListener<CastSession> {
+        @Override
+        public void onSessionStarting(CastSession castSession) {
+        }
+
+        @Override
+        public void onSessionStarted(CastSession castSession, String s) {
+        }
+
+        @Override
+        public void onSessionStartFailed(CastSession castSession, int i) {
+        }
+
+        @Override
+        public void onSessionEnding(CastSession castSession) {
+        }
+
+        @Override
+        public void onSessionEnded(CastSession castSession, int i) {
+        }
+
+        @Override
+        public void onSessionResuming(CastSession castSession, String s) {
+        }
+
+        @Override
+        public void onSessionResumed(CastSession castSession, boolean b) {
+        }
+
+        @Override
+        public void onSessionResumeFailed(CastSession castSession, int i) {
+        }
+
+        @Override
+        public void onSessionSuspended(CastSession castSession, int i) {
+        }
+    }
 }

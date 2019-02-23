@@ -4,6 +4,14 @@
       tools:context=".MainActivity">
 
       <item
+          android:id="@+id/media_route_menu_item"
+          android:title="media_route_button"
+          app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+          app:showAsAction="always"
+          android:visible="true"
+          />
+
+      <item
           android:id="@+id/action_scan"
           app:showAsAction="always"
           android:title="@string/action_scan"/>
