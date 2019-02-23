@@ -20,10 +20,13 @@ import com.jins_jp.meme.MemeLib;
 import com.jins_jp.meme.MemeRealtimeData;
 import com.jins_jp.meme.MemeRealtimeListener;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import sse.JinsMemePublisher;
+import sse.JinsMemeSubscriber;
 import sse.MemeDoubleData;
 
 
@@ -101,6 +104,9 @@ public class LiveViewActivity extends AppCompatActivity {
         }
     }
 
+    private MqttClient subscriberClient;
+    private JinsMemeSubscriber subscriber;
+
     private void init() {
         //Authentication and authorization of App and SDK
         MemeLib.setAppClientID(getApplicationContext(), APP_ID, APP_SECRET);
@@ -141,7 +147,24 @@ public class LiveViewActivity extends AppCompatActivity {
 
         changeViewStatus(memeLib.isConnected());
 
+        this.subscriber = new JinsMemeSubscriber();
 
+        try {
+            subscriberClient = new MqttClient(getString(R.string.broker), getString(R.string.clientId)+"-sub", new MemoryPersistence());
+            subscriberClient.setCallback(this.subscriber);
+            MqttConnectOptions connOpts = new MqttConnectOptions();
+            connOpts.setCleanSession(false);
+
+            final String topic = "jins-meme-stress";
+            final int qos = 0;
+
+            subscriberClient.connect(connOpts);
+            subscriberClient.subscribe(topic, qos);
+        }
+        catch (MqttException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private void changeViewStatus(boolean connected) {

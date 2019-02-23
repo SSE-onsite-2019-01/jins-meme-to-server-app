@@ -128,7 +128,7 @@ public class JinsMemePublisher extends AsyncTask<MemeDoubleData, Void, Boolean> 
     private void publishMessage(MqttClient client, MqttConnectOptions option, String name, double value) throws MqttException {
         MqttMessage message = new MqttMessage(convertToByteArray(value));
         message.setQos(0);
-        message.setRetained(false);
+        message.setRetained(true);
 
         client.publish("jins-meme/" + name, message);
     }
