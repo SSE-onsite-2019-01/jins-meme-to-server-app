@@ -20,4 +20,11 @@
           app:showAsAction="always"
           android:title="@string/action_stop"
           android:visible="false"/>
+
+      <item
+          android:id="@+id/optionsMenu_01"
+          android:title="@string/opt_menu_01"
+          android:icon="@android:drawable/ic_menu_preferences"
+          />
+
 </menu>

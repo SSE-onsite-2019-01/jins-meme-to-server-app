@@ -15,4 +15,13 @@
     <!--<string name="broker">http://13.125.237.148/</string>-->
     <string name="broker">tcp://ec2-13-125-237-148.ap-northeast-2.compute.amazonaws.com:1883</string>
     <string name="clientId">Sample</string>
+
+    <!-- menu used -->
+    <string name="opt_menu_01">設定</string>
+
+    <!-- preference strings -->
+    <string name="preference_title">設定画面</string>
+    <string name="list_title">ChromeCastへの通知時間</string>
+    <string name="list_summary">ChromeCastへの通知時間を設定します</string>
+    <string name="list_key">List_Key</string>
 </resources>

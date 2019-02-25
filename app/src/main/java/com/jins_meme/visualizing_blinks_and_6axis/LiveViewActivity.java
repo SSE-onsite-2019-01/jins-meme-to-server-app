@@ -1,14 +1,19 @@
 package com.jins_meme.visualizing_blinks_and_6axis;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Matrix;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.ListPreference;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -35,6 +40,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
+import sse.JinsMemePreferenceFragment;
 import sse.JinsMemePublisher;
 import sse.JinsMemeSubscriber;
 import sse.MemeDoubleData;
@@ -101,6 +107,13 @@ public class LiveViewActivity extends AppCompatActivity {
     private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
+
+            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            // リストによる設定の内容
+            String val = "";
+            String result = pref.getString(getString(R.string.list_key), val);
+            double time = Double.parseDouble(result);
+
             try {
                 SessionManager manager = m_castContext.getSessionManager();
                 CastSession session = manager.getCurrentCastSession();
@@ -134,7 +147,7 @@ public class LiveViewActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            castHiHandler.postDelayed(this, 1000 * 30);
+            castHiHandler.postDelayed(this, (long)(1000 * 60 * time));
         }
     };
 
@@ -191,6 +204,19 @@ public class LiveViewActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         m_castContext.getSessionManager().removeSessionManagerListener(mSessionManagerListener, CastSession.class);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.optionsMenu_01:
+                Intent intent1 = new android.content.Intent(this, SettingActivity.class);
+                startActivity(intent1);
+                //getFragmentManager().beginTransaction().replace(android.R.id.content, new JinsMemePreferenceFragment()).commit();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     private void init() {
